@@ -1,6 +1,7 @@
 use obws::Client;
 use tokio::sync::Mutex;
 use std::sync::Arc;
+use std::error::Error;
 // use anyhow::Result;
 
 // static OBS_CLIENT: Mutex<Option<Client>> = Mutex::new(None);
@@ -30,13 +31,36 @@ impl ObsClass{
             Err(e) => Err(e.to_string())
         }
     }
-    pub async fn set_virtual_cam(&self,) -> Result<String,String>{
+    pub async fn set_virtual_cam(&self) -> Result<String,String>{
         let client = self.get_client().await?;
-        let res = client.virtual_cam().start().await;
-        if let Err(e) = res {
-            Err(e.to_string())
-        }else{
-            Ok("turn up virtual cam".to_string())
+        let status = client.virtual_cam().status().await;
+        match status{
+            Err(e) => Err(e.to_string()),
+            Ok(status) => {
+                if status == true {return Ok("already up virtual cam".to_string())}
+                let res = client.virtual_cam().start().await;
+                match res{
+                    Err(e) => Err(e.to_string()),
+                    Ok(_) => Ok("turn up virtual cam".to_string())
+                }
+            }
+        }
+    }
+
+    pub async fn set_replay_buffer(&self) -> Result<String,String>{
+        let client = self.get_client().await?;
+        let status = client.replay_buffer().status().await;
+        match status {
+            Err(e) => Err(e.to_string()),
+            Ok(status) => {
+                // すでにONだったらOk返す
+                if status == true { return Ok("already up replay buffer".to_string()); }
+                let res = client.replay_buffer().start().await;
+                match res{
+                    Err(e) => Err(e.to_string()),
+                    Ok(res) => Ok("turn up replay buffer".to_string())
+                }
+            }
         }
     }
 }

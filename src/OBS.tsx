@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-// import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 function Logo(){
   return (
@@ -15,7 +15,7 @@ function Logo(){
 const ButtonComponent = () => {
   const [connectState,setConnectState] = useState(false);
   const [errMessage,setErrMessage] = useState("");
-//   const navigate = useNavigate();
+  const navigate = useNavigate();
 
   const onSubmit = async(e:React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -27,9 +27,11 @@ const ButtonComponent = () => {
     setConnectState(true);
     invoke("obs_login", { host, port, password })
     .then(async() => {
-      invoke("obs_start_virtual_cam").then(console.log)
+      invoke("obs_start").then(
+        // 全部Okなら遷移
+        () => navigate("/view")
+      )
       .catch(e => {setConnectState(false);setErrMessage(e);});
-    //   navigate("/obs");
     })
     .catch((e) => {setConnectState(false);setErrMessage(e)});
   }

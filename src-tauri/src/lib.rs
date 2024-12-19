@@ -14,13 +14,27 @@ async fn obs_login(state:State<'_,Mutex<obs::ObsClass>>,host: &str, port: u16, p
     state.login(host, port, password).await
 }
 
+// #[tauri::command]
+// async fn obs_start_virtual_cam(state:State<'_, Mutex<obs::ObsClass>>) -> Result<String,String> {
+//     let state = state.lock().await;
+//     state.set_virtual_cam().await
+// }
+
 #[tauri::command]
-async fn obs_start_virtual_cam(state:State<'_, Mutex<obs::ObsClass>>) -> Result<String,String> {
+async fn obs_start(state:State<'_, Mutex<obs::ObsClass>>) -> Result<String,String>{
     let state = state.lock().await;
-    state.set_virtual_cam().await
+    let res = state.set_virtual_cam().await;
+    match res{
+        Ok(res) => {
+            let res = state.set_replay_buffer().await;
+            match res {
+                Ok(res) => Ok(res),
+                Err(e) => Err(e.to_string()) 
+            }
+        },
+        Err(e) => Err(e.to_string())
+    }
 }
-
-
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -30,7 +44,7 @@ pub fn run() {
             Ok(())
         })
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet,obs_login,obs_start_virtual_cam])
+        .invoke_handler(tauri::generate_handler![greet,obs_login,obs_start])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
