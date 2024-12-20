@@ -34,16 +34,15 @@ impl ObsClass{
     pub async fn set_virtual_cam(&self) -> Result<String,String>{
         let client = self.get_client().await?;
         let status = client.virtual_cam().status().await;
-        match status{
+        let status = match client.virtual_cam().status().await {
+            Ok(status) => status,
+            Err(e) => return Err(e.to_string())
+        };
+        if status == true { return Ok("already up virtual cam".to_string()) }
+        let res = client.virtual_cam().start().await;
+        match res{
             Err(e) => Err(e.to_string()),
-            Ok(status) => {
-                if status == true {return Ok("already up virtual cam".to_string())}
-                let res = client.virtual_cam().start().await;
-                match res{
-                    Err(e) => Err(e.to_string()),
-                    Ok(_) => Ok("turn up virtual cam".to_string())
-                }
-            }
+            Ok(_) => Ok("turn up virtual cam".to_string())
         }
     }
 
