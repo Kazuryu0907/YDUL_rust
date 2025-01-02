@@ -25,6 +25,7 @@ serde_json = "1"
 obws = "0.13.0"
 anyhow = "1.0.94"
 tokio = "1.42.0"
+opencv = "0.93.5"
 
 [build]
 rustc-wrapper = "C:\\Users\\kazum\\scoop\\apps\\sccache\\current"

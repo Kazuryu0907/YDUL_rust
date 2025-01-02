@@ -1,5 +1,7 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 mod obs;
+mod camera;
+
 use tokio::sync::Mutex;
 use tauri::{Manager, State};
 
@@ -14,6 +16,14 @@ async fn obs_login(state:State<'_,Mutex<obs::ObsClass>>,host: &str, port: u16, p
     state.login(host, port, password).await
 }
 
+#[tauri::command]
+fn camera_preview(index:i32) -> Result<String,String>{
+    let res = camera::show_camera(index);
+    match res{
+        Ok(_) => Ok("Preview".to_string()),
+        Err(_) => Err("No camera".to_string())
+    }
+}
 // #[tauri::command]
 // async fn obs_start_virtual_cam(state:State<'_, Mutex<obs::ObsClass>>) -> Result<String,String> {
 //     let state = state.lock().await;
@@ -23,17 +33,8 @@ async fn obs_login(state:State<'_,Mutex<obs::ObsClass>>,host: &str, port: u16, p
 #[tauri::command]
 async fn obs_start(state:State<'_, Mutex<obs::ObsClass>>) -> Result<String,String>{
     let state = state.lock().await;
-    let res = state.set_virtual_cam().await;
-    match res{
-        Ok(res) => {
-            let res = state.set_replay_buffer().await;
-            match res {
-                Ok(res) => Ok(res),
-                Err(e) => Err(e.to_string()) 
-            }
-        },
-        Err(e) => Err(e.to_string())
-    }
+    state.set_virtual_cam().await?;
+    state.set_replay_buffer().await
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -44,7 +45,7 @@ pub fn run() {
             Ok(())
         })
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet,obs_login,obs_start])
+        .invoke_handler(tauri::generate_handler![greet,obs_login,obs_start,camera_preview])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

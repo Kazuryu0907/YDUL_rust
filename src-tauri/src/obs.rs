@@ -33,7 +33,6 @@ impl ObsClass{
     }
     pub async fn set_virtual_cam(&self) -> Result<String,String>{
         let client = self.get_client().await?;
-        let status = client.virtual_cam().status().await;
         let status = match client.virtual_cam().status().await {
             Ok(status) => status,
             Err(e) => return Err(e.to_string())
@@ -48,18 +47,15 @@ impl ObsClass{
 
     pub async fn set_replay_buffer(&self) -> Result<String,String>{
         let client = self.get_client().await?;
-        let status = client.replay_buffer().status().await;
-        match status {
-            Err(e) => Err(e.to_string()),
-            Ok(status) => {
-                // すでにONだったらOk返す
-                if status == true { return Ok("already up replay buffer".to_string()); }
-                let res = client.replay_buffer().start().await;
-                match res{
-                    Err(e) => Err(e.to_string()),
-                    Ok(res) => Ok("turn up replay buffer".to_string())
-                }
-            }
+        let status = match client.replay_buffer().status().await {
+            Ok(status) => status,
+            Err(e) => return Err(e.to_string())
+        };
+        if status == true { return Ok("already up replay buffer".to_string())}
+        let res = client.replay_buffer().start().await;
+        match res {
+            Ok(_) => Ok("turn up replay buffer".to_string()),
+            Err(e) => Err(e.to_string())
         }
     }
 }
