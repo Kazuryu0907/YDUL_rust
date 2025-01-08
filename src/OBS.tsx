@@ -6,7 +6,7 @@ function Logo(){
   return (
     <a href="#" className="flex items-center mb-6 text-2xl font-semibold text-gray-900 dark:text-white">
       Connect To 
-      <img className="w-12 h-12 ml-2" src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/OBS_Studio_Logo.svg/1024px-OBS_Studio_Logo.svg.png" alt="logo"/>
+      <img className="w-12 h-12 ml-2" src="/obs.png" alt="logo"/>
     </a>
   );
 
@@ -27,6 +27,7 @@ const ButtonComponent = () => {
     setConnectState(true);
     invoke("obs_login", { host, port, password })
     .then(async() => {
+      invoke("obs_event_listen");
       invoke("obs_start").then(
         // 全部Okなら遷移
         () => navigate("/view")
